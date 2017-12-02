@@ -11,11 +11,11 @@ fn main() {
 
 fn solve() -> Result<(u32, u32), Error> {
     let v = read_ints(Path::new("input/day2.txt"))?;
-    println!("{:?}",v );
     let mut sum1 = 0u32;
     let mut sum2= 0u32;
     for line in &v {
         sum1 += checksum_line(line);
+        sum2 += division_line(line);
     }
     Ok((sum1, sum2))
 }
@@ -36,4 +36,14 @@ fn checksum_line(v: &[u32]) -> u32 {
         if *x < min { min = *x };
     }
     max - min
+}
+
+fn division_line(v: & [u32]) -> u32 {
+    let mut res = 0;
+    for x in v {
+        for y in v {
+            if x != y && x%y == 0 { res = x/y }
+        }
+    }
+    res
 }

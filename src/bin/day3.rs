@@ -46,9 +46,10 @@ x-1 - min(|n-c|) for c in corners
 
 fn solve_2(n: usize) -> usize {
     // After each turn, the number is more than 2 times the previous
-    // Thus an acceptable size for the spirale is log2(n)/4 as an odd number
+    // Thus an acceptable size for the spirale is x=log2(n)/2 as an odd number
 
-    let l: usize = ((32 - (n as u32).leading_zeros())/8 *2 +5) as usize;
+    let mut l: usize = ((32 - (n as u32).leading_zeros())/2 +1) as usize;
+    if l%2 == 0 { l +=1 };
     let mut m = vec![vec![0;l];l];
     // coordinates
     let mut x: usize = l/2;

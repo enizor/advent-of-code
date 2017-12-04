@@ -18,6 +18,7 @@ fn solve() -> Result<(u32, u32), Error> {
     for line in file.lines() {
         let x = line.unwrap();
         if valid_passphrase(&x) { sum1 += 1 }
+        if valid_passphrase2(&x) { sum2 +=1 }
     }
     Ok((sum1, sum2))
 }
@@ -29,4 +30,22 @@ fn valid_passphrase(s: &str) -> bool {
 
 fn contains(word: &str, collection: &Vec<&str>) -> bool {
     !collection.iter().filter( |w| *word == ***w ).nth(1).is_none()
+}
+
+fn valid_passphrase2(s: &str) -> bool {
+    let words: Vec<&str> = s.split_whitespace().collect();
+    (&words).iter().filter(|w| contains_anagram(*w, &words)).next().is_none()
+}
+
+fn contains_anagram(word: &str, collection: &Vec<&str>) -> bool {
+    !collection.iter().filter( |w| (is_anagram(word, w.to_string())) ).nth(1).is_none()
+}
+
+fn is_anagram(u: &str, mut v: String) -> bool {
+    let mut res = true;
+    for c in u.chars() {
+        if let Some(n) = v.find(c) { v.remove(n);}
+        else { res = false }
+    }
+    &v == "" && res
 }

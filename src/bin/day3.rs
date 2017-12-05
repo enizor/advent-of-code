@@ -9,14 +9,16 @@ fn main() {
 }
 
 fn get_input() -> Result<usize, std::num::ParseIntError> {
-    let n = args().nth(1).expect("Please provide your input")
-    .parse::<usize>()?;
+    let n = args()
+        .nth(1)
+        .expect("Please provide your input")
+        .parse::<usize>()?;
     Ok(n)
 }
 
 
 fn solve_spiral(n: usize) -> usize {
-/* The spiral can be seen as such
+    /* The spiral can be seen as such
 
 (x*x-2x+2)  (x*x-3x+3)
    \       /
@@ -33,30 +35,36 @@ x-1 - min(|n-c|) for c in corners
 
 */
     let mut x = 1;
-    while x*x < n {
+    while x * x < n {
         x = x + 2;
     }
-    let mut min = x*x-n;
+    let ix = x as i32;
+    let mut min = x * x - n;
     for y in 1..5 {
         // y = 4 is the (x-2)**2 corner
-        min = cmp::min(min, (n as i32 - (x*(x-y) + y)as i32 ).abs()as usize);
+        min = cmp::min(
+            min,
+            (n as i32 - (ix * (ix - y as i32) + y as i32)).abs() as usize,
+        );
     }
-    x-1 - min
+    x - 1 - min
 }
 
 fn solve_2(n: usize) -> usize {
     // After each turn, the number is more than 2 times the previous
     // Thus an acceptable size for the spirale is x=log2(n)/2 as an odd number
 
-    let mut l: usize = ((32 - (n as u32).leading_zeros())/2 +1) as usize;
-    if l%2 == 0 { l +=1 };
-    let mut m = vec![vec![0;l];l];
+    let mut l: usize = ((32 - (n as u32).leading_zeros()) / 2 + 1) as usize;
+    if l % 2 == 0 {
+        l += 1
+    };
+    let mut m = vec![vec![0; l]; l];
     // coordinates
-    let mut x: usize = l/2;
-    let mut y: usize = l/2+1;
+    let mut x: usize = l / 2;
+    let mut y: usize = l / 2 + 1;
     let mut direction = 0u8;
     m[x][y] = 1;
-    m[x][y-1] = 1;
+    m[x][y - 1] = 1;
     while m[x][y] < n {
         let t = next_case(x, y, direction);
         x = t.0;
@@ -66,7 +74,7 @@ fn solve_2(n: usize) -> usize {
         if direction == 4 {
             direction = 0
         }
-        if (x as i32 - (l/2) as i32).abs() == (y as i32 - (l/2) as i32).abs() {
+        if (x as i32 - (l / 2) as i32).abs() == (y as i32 - (l / 2) as i32).abs() {
             direction = direction + 1;
         }
     }
@@ -75,29 +83,29 @@ fn solve_2(n: usize) -> usize {
     m[x][y]
 }
 
-fn next_case(x:usize, y: usize, d: u8) -> (usize, usize) {
+fn next_case(x: usize, y: usize, d: u8) -> (usize, usize) {
     match d {
         // dir = 4 is the bottom right corner
         // where we still need ine step before turning
-        0 => (x-1, y),
-        1 => (x, y-1),
-        2 => (x+1, y),
-        3 => (x, y+1),
-        4 => (x, y+1),
-        _ => (0,0)
+        0 => (x - 1, y),
+        1 => (x, y - 1),
+        2 => (x + 1, y),
+        3 => (x, y + 1),
+        4 => (x, y + 1),
+        _ => (0, 0),
     }
 
 }
 
-fn sum_neighbours(m: &Vec<Vec<usize>>, x: isize, y: isize, l:usize) -> usize {
+fn sum_neighbours(m: &Vec<Vec<usize>>, x: isize, y: isize, l: usize) -> usize {
     let mut sum = 0;
     // all the neighbours including (x,y) then filtered to have >=0 and <l
-    let i_x = [x-1, x, x+1];
-    let iter_x = i_x.into_iter()
-    .filter( |&x| { *x >= 0 && *x < l as isize} );
-    let i_y = [y-1, y, y+1];
+    let i_x = [x - 1, x, x + 1];
+    let iter_x = i_x.into_iter().filter(|&x| *x >= 0 && *x < l as isize);
+    let i_y = [y - 1, y, y + 1];
     let iter_y: Vec<&isize> = i_y.into_iter()
-    .filter( |&y| { *y >= 0 && *y < l as isize} ).collect();
+        .filter(|&y| *y >= 0 && *y < l as isize)
+        .collect();
 
     for x1 in iter_x {
         for y1 in &iter_y {
@@ -111,4 +119,40 @@ fn print_matrix(m: &Vec<Vec<usize>>) {
     for x in m {
         println!("{:?}", x)
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn solve1_test() {
+        let inputs = [1, 12, 23, 1024];
+        let solutions = [0, 3, 2, 31];
+        for (input, solution) in inputs.iter().zip(solutions.iter()) {
+            assert_eq!(solve_spiral(*input), *solution)
+        }
+    }
+
+    #[test]
+    fn sum_neighbours_test() {
+        let matrix = vec![vec![1, 1, 1], vec![1, 1, 1], vec![1, 1, 1]];
+        let solutions = [[3, 5, 3], [5, 8, 5], [3, 5, 3]];
+        for (x, y) in (0..3).enumerate() {
+            assert_eq!(
+                sum_neighbours(&matrix, x as isize, y as isize, 3),
+                solutions[x][y]
+            )
+        }
+    }
+
+    #[test]
+    fn solve2_test() {
+        let inputs = [3, 12, 23, 70, 800];
+        let solutions = [4, 23, 23, 122, 806];
+        for (input, solution) in inputs.iter().zip(solutions.iter()) {
+            assert_eq!(solve_2(*input), *solution)
+        }
+    }
+
 }

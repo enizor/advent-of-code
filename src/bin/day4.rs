@@ -69,6 +69,7 @@ fn is_anagram(u: &str, mut v: String) -> bool {
     &v == "" && res
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 

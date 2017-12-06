@@ -20,22 +20,23 @@ fn solve() -> Result<(usize, usize), Error> {
         .split_whitespace()
         .filter_map(|x| x.parse().ok())
         .collect();
-    let sum1 = solve1(v.clone());
-    let sum2 = 0;
+    let (sum1, sum2) = solve1and2(v.clone());
     Ok((sum1, sum2))
 }
 
-fn solve1(mut v: Vec<usize>) -> usize {
+fn solve1and2(mut v: Vec<usize>) -> (usize, usize) {
     let w = v.clone();
     let mut states = vec![w];
     let mut res = 1;
     distribute(&mut v);
-    while !contains(&states, v.clone()) {
+    let mut loop_start = find(&states, v.clone());
+    while loop_start.is_none() {
         states.push(v.clone());
         distribute(&mut v);
+        loop_start = find(&states, v.clone());
         res += 1;
     }
-    res
+    (res, res - loop_start.unwrap())
 }
 
 fn index_of_max(v: &[usize]) -> usize {
@@ -61,11 +62,13 @@ fn distribute(v: &mut Vec<usize>) {
     }
 }
 
-fn contains<T: PartialEq>(v: &[T], x: T) -> bool {
-    let mut res = false;
+fn find<T: PartialEq>(v: &[T], x: T) -> Option<usize> {
+    let mut res = None;
     let mut i = 0;
-    while i < v.len() && !res {
-        res = v[i] == x;
+    while i < v.len() && res.is_none() {
+        if v[i] == x {
+            res = Some(i)
+        }
         i += 1;
     }
     res
@@ -100,17 +103,18 @@ mod tests {
     }
 
     #[test]
-    fn contains_test() {
-        assert_eq!(contains(&[], "a"), false);
-        assert_eq!(contains(&["a"], "a"), true);
-        assert_eq!(contains(&["b"], "a"), false);
-        assert_eq!(contains(&[1, 2, 3], 2), true);
+    fn find_test() {
+        assert_eq!(find(&[], "a"), None);
+        assert_eq!(find(&["a"], "a"), Some(0));
+        assert_eq!(find(&["b"], "a"), None);
+        assert_eq!(find(&[1, 2, 3], 2), Some(1));
     }
 
     #[test]
-    fn solve1_test() {
-        assert_eq!(solve1(vec![0, 2, 7, 0]), 5);
-        assert_eq!(solve1(vec![1, 2, 1]), 3);
-        assert_eq!(solve1(vec![0, 1, 0]), 3);
+    fn solve1and2_test() {
+        assert_eq!(solve1and2(vec![0, 2, 7, 0]), (5, 4));
+        assert_eq!(solve1and2(vec![1, 2, 1]), (3, 3));
+        assert_eq!(solve1and2(vec![0, 1, 0]), (3, 3));
+        assert_eq!(solve1and2(vec![0, 4, 0]), (4, 3));
     }
 }

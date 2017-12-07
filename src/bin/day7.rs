@@ -79,7 +79,11 @@ fn main() {
     let mut input = String::new();
     f.read_to_string(&mut input).ok();
     let tower = read_input(&input);
-    println!("Part 1: {}", tower.name)
+    println!(
+        "Part 1: {}, Part 2: {}",
+        tower.name,
+        equilibrate(&tower).err().unwrap()
+    )
 }
 
 fn read_input(file: &str) -> Tower {
@@ -117,6 +121,30 @@ fn read_input(file: &str) -> Tower {
     finished_towers.remove(0)
 }
 
+fn equilibrate(t: &Tower) -> Result<usize, usize> {
+    let weights: Vec<Result<usize, usize>> = t.childs.iter().map(|t| equilibrate(t)).collect();
+    if weights.len() == 0 {
+        Ok(t.weight)
+    } else if let Some(&e) = weights.iter().find(|&x| x.is_err()) {
+        e
+    } else {
+        let weights2: Vec<usize> = weights.iter().map(|&w| w.unwrap()).collect();
+        let total: usize = weights2.iter().sum();
+        let number = weights2.len();
+        let mut w1 = weights2[0];
+        if let Some(&w2) = weights2.iter().find(|&&w| w != w1) {
+            let (wrong_weight, good_weight) = if total == (number - 1) * w1 + w2 {
+                (w2, w1)
+            } else {
+                (w1, w2)
+            };
+            let wrong_tower_weight = t.childs[find(&weights2, wrong_weight).unwrap()].weight;
+            Err(wrong_tower_weight + good_weight - wrong_weight)
+        } else {
+            Ok(total + t.weight)
+        }
+    }
+}
 
 #[cfg(test)]
 mod test {
@@ -163,7 +191,9 @@ mod test {
             gyxo (61)
             cntj (57)";
         u = read_input(input);
-        assert_eq!(u.name.as_str(), "tknk")
+        assert_eq!(u.name.as_str(), "tknk");
+        println!("{:?}", u);
+        assert_eq!(equilibrate(&u), Err(60));
     }
 
 }

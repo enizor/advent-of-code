@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-fn execute(line: &str, registers: &mut HashMap<String, isize>) {
+fn execute(line: &str, registers: &mut HashMap<String, isize>, max: isize) -> isize {
     let words: Vec<&str> = line.split_whitespace().collect();
     // test condition
     let cond_reg_val = *registers.get(words[4]).unwrap_or(&0);
@@ -23,23 +23,30 @@ fn execute(line: &str, registers: &mut HashMap<String, isize>) {
         if words[1] == "dec" {
             inc = -inc
         }
-        registers.insert(words[0].into(), reg_value + inc);
+        let new = reg_value + inc;
+        let new_max = new.max(max);
+        registers.insert(words[0].into(), new);
+        new_max
+    } else {
+        max
     }
 }
 
-fn solve1(input: &str) -> isize {
+fn solve(input: &str) -> (isize, isize) {
     let mut registers = HashMap::new();
+    let mut max = 0;
     for line in input.lines() {
-        execute(line, &mut registers)
+        max = execute(line, &mut registers, max);
     }
-    *registers.values().max().unwrap_or(&0)
+    (*registers.values().max().unwrap_or(&0), max)
 }
 
 fn main() {
     let mut f = File::open(Path::new("input/day8.txt")).unwrap();
     let mut input = String::new();
     f.read_to_string(&mut input).ok();
-    println!("Part 1: {}, Part 2: {}", solve1(&input), 0)
+    let (p1, p2) = solve(&input);
+    println!("Part 1: {}, Part 2: {}", p1, p2)
 }
 
 
@@ -56,19 +63,19 @@ c inc -20 if c == 10";
     fn execute_test() {
         let mut regs = HashMap::new();
         let mut lines = INPUT.lines();
-        execute(lines.next().unwrap(), &mut regs);
+        assert_eq!(execute(lines.next().unwrap(), &mut regs, 0), 0);
         assert_eq!(regs.get("b"), None);
-        execute(lines.next().unwrap(), &mut regs);
+        assert_eq!(execute(lines.next().unwrap(), &mut regs, 0), 1);
         assert_eq!(regs.get("a"), Some(&1));
-        execute(lines.next().unwrap(), &mut regs);
+        assert_eq!(execute(lines.next().unwrap(), &mut regs, 1), 10);
         assert_eq!(regs.get("c"), Some(&10));
-        execute(lines.next().unwrap(), &mut regs);
+        assert_eq!(execute(lines.next().unwrap(), &mut regs, 10), 10);
         assert_eq!(regs.get("c"), Some(&-10));
     }
 
     #[test]
-    fn solve1_test() {
-        assert_eq!(solve1(INPUT), 1);
+    fn solve_test() {
+        assert_eq!(solve(INPUT), (1, 10));
     }
 
 }

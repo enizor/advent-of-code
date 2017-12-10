@@ -7,6 +7,36 @@ fn solve1(mut v: &mut Vec<usize>, lengths: &[usize]) -> usize {
     v[0] * v[1]
 }
 
+
+fn solve2(mut v: &mut Vec<usize>, input: &str) -> String {
+
+    let mut lengths: Vec<usize> = input.chars().map(|c| c as usize).collect::<Vec<usize>>();
+    lengths.append(&mut vec![17, 31, 73, 47, 23]);
+
+    let mut pos = 0;
+    let mut skip = 0;
+    for _ in 0..64 {
+        let res = knot(&mut v, &lengths, pos, skip);
+        pos = res.0;
+        skip = res.1;
+    }
+    // v is now the sparse hash, transform it in dense hash
+    let mut dense_hash = vec![];
+    for i in 0..16 {
+        dense_hash.push(v[i*16..(i+1)*16].iter().fold(0, |acc, &x| acc ^ x ));
+    }
+    // format in hex notation
+    dense_hash.iter().map(|&x| format(x)).collect()
+}
+
+fn format(n : usize) -> String {
+    let mut s = format!("{:x}", n);
+    if s.len() == 1 {
+        s = String::from("0") + &s
+    }
+    s
+}
+
 fn knot(mut v: &mut Vec<usize>, lengths: &[usize], pos: usize, skip: usize) -> (usize, usize) {
     let mut pos_res = pos;
     let mut skip_res = skip;
@@ -30,7 +60,8 @@ fn main() {
         .collect();
     let mut v = (0..256).collect::<Vec<usize>>();
     let p1 = solve1(&mut v, &lengths);
-    let p2 = 0;
+    let mut v = (0..256).collect::<Vec<usize>>();
+    let p2 = solve2(&mut v, &input);
     println!("Part 1: {}, Part 2: {}", p1, p2)
 }
 
@@ -65,4 +96,11 @@ mod test {
         assert_eq!(solve1(&mut v, input), 12)
     }
 
+    #[test]
+    fn solve2_test() {
+        assert_eq!(solve2(&mut (0..256).collect::<Vec<usize>>(), ""), "a2582a3a0e66e6e86e3812dcb672a272");
+        assert_eq!(solve2(&mut (0..256).collect::<Vec<usize>>(), "AoC 2017"), "33efeb34ea91902bb2f59c9920caa6cd");
+        assert_eq!(solve2(&mut (0..256).collect::<Vec<usize>>(), "1,2,3"), "3efbe78a8d82f29979031a4aa0b16a9d");
+        assert_eq!(solve2(&mut (0..256).collect::<Vec<usize>>(), "1,2,4"), "63960835bcdc130f0b66d7ff4f6a5a8e");
+    }
 }

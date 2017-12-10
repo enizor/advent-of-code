@@ -23,13 +23,13 @@ fn solve2(mut v: &mut Vec<usize>, input: &str) -> String {
     // v is now the sparse hash, transform it in dense hash
     let mut dense_hash = vec![];
     for i in 0..16 {
-        dense_hash.push(v[i*16..(i+1)*16].iter().fold(0, |acc, &x| acc ^ x ));
+        dense_hash.push(v[i * 16..(i + 1) * 16].iter().fold(0, |acc, &x| acc ^ x));
     }
     // format in hex notation
     dense_hash.iter().map(|&x| format(x)).collect()
 }
 
-fn format(n : usize) -> String {
+fn format(n: usize) -> String {
     let mut s = format!("{:x}", n);
     if s.len() == 1 {
         s = String::from("0") + &s
@@ -98,9 +98,21 @@ mod test {
 
     #[test]
     fn solve2_test() {
-        assert_eq!(solve2(&mut (0..256).collect::<Vec<usize>>(), ""), "a2582a3a0e66e6e86e3812dcb672a272");
-        assert_eq!(solve2(&mut (0..256).collect::<Vec<usize>>(), "AoC 2017"), "33efeb34ea91902bb2f59c9920caa6cd");
-        assert_eq!(solve2(&mut (0..256).collect::<Vec<usize>>(), "1,2,3"), "3efbe78a8d82f29979031a4aa0b16a9d");
-        assert_eq!(solve2(&mut (0..256).collect::<Vec<usize>>(), "1,2,4"), "63960835bcdc130f0b66d7ff4f6a5a8e");
+        assert_eq!(
+            solve2(&mut (0..256).collect::<Vec<usize>>(), ""),
+            "a2582a3a0e66e6e86e3812dcb672a272"
+        );
+        assert_eq!(
+            solve2(&mut (0..256).collect::<Vec<usize>>(), "AoC 2017"),
+            "33efeb34ea91902bb2f59c9920caa6cd"
+        );
+        assert_eq!(
+            solve2(&mut (0..256).collect::<Vec<usize>>(), "1,2,3"),
+            "3efbe78a8d82f29979031a4aa0b16a9d"
+        );
+        assert_eq!(
+            solve2(&mut (0..256).collect::<Vec<usize>>(), "1,2,4"),
+            "63960835bcdc130f0b66d7ff4f6a5a8e"
+        );
     }
 }

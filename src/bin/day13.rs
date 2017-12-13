@@ -13,11 +13,11 @@ impl Layer {
         time % (2 * self.range - 2) == 0
     }
 
-    fn severity(&self, time: usize) -> Option<usize> {
+    fn severity(&self, time: usize) -> usize {
         if self.caught(time) {
-            Some(self.depth * self.range)
+            self.depth * self.range
         } else {
-            None
+            0
         }
     }
 }
@@ -32,24 +32,15 @@ fn main() {
 
 fn solve(input: &str) -> (usize, usize) {
     let layers = parse_input(input);
-    let mut total = None;
+    let mut total = 0;
     let mut delay = 0;
     for layer in layers.iter() {
-        if let Some(s) = layer.severity(layer.depth) {
-            total = Some(total.unwrap_or(0) + s);
-        }
+        total = total + layer.severity(layer.depth);
     }
-    let part_1 = total.unwrap_or(0);
-    while total.is_some() {
-        total = None;
-        delay += 1;
-        for layer in layers.iter() {
-            if let Some(s) = layer.severity(layer.depth + delay) {
-                total = Some(total.unwrap_or(0) + s);
-            }
-        }
+    while layers.iter().any(|layer| layer.caught(layer.depth + delay)) {
+        delay += 1
     }
-    (part_1, delay)
+    (total, delay)
 }
 
 

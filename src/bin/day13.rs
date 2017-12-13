@@ -9,15 +9,15 @@ struct Layer {
 }
 
 impl Layer {
-    fn caught(&self) -> bool {
-        self.depth % (2 * self.range - 2) == 0
+    fn caught(&self, time: usize) -> bool {
+        time % (2 * self.range - 2) == 0
     }
 
-    fn severity(&self) -> usize {
-        if self.caught() {
-            self.depth * self.range
+    fn severity(&self, time: usize) -> Option<usize> {
+        if self.caught(time) {
+            Some(self.depth * self.range)
         } else {
-            0
+            None
         }
     }
 }
@@ -32,11 +32,24 @@ fn main() {
 
 fn solve(input: &str) -> (usize, usize) {
     let layers = parse_input(input);
-    let mut total = 0;
-    for layer in layers {
-        total += layer.severity()
+    let mut total = None;
+    let mut delay = 0;
+    for layer in layers.iter() {
+        if let Some(s) = layer.severity(layer.depth) {
+            total = Some(total.unwrap_or(0) + s);
+        }
     }
-    (total, 0)
+    let part_1 = total.unwrap_or(0);
+    while total.is_some() {
+        total = None;
+        delay += 1;
+        for layer in layers.iter() {
+            if let Some(s) = layer.severity(layer.depth + delay) {
+                total = Some(total.unwrap_or(0) + s);
+            }
+        }
+    }
+    (part_1, delay)
 }
 
 
@@ -82,6 +95,6 @@ mod test {
                      1: 2
                      4: 4
                      6: 4";
-        assert_eq!(solve(input), (24, 0))
+        assert_eq!(solve(input), (24, 10))
     }
 }

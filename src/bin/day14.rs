@@ -60,13 +60,77 @@ fn solve1(input: &str) -> usize {
     res
 }
 
+
+fn find_item(k: (usize, usize), v: &Vec<Vec<(usize, usize)>>) -> Option<usize> {
+    v.iter().position(|group| group.iter().any(|&x| x == k))
+}
+
+fn add_link(x: (usize, usize), y: (usize, usize), groups: &mut Vec<Vec<(usize, usize)>>) {
+    match (find_item(x, groups), find_item(y, groups)) {
+        (Some(i), Some(j)) if i == j => (),
+        (Some(i), Some(j)) => merge(i, j, groups),
+        _ => (),
+    };
+}
+
+fn merge(i: usize, j: usize, groups: &mut Vec<Vec<(usize, usize)>>) {
+    if i < j {
+        let mut v = groups.swap_remove(j);
+        groups[i].append(&mut v);
+    } else {
+        merge(j, i, groups)
+    }
+}
+
+fn nth_bit(x: usize, n: usize) -> bool {
+    ((x >> n) & 1) == 1
+}
+
+fn solve2(input: &str) -> usize {
+    let mut line: String = input.to_string();
+    line.push('-');
+    let mut groups = vec![];
+    let mut grid = [[false; 130]; 130];
+    for i in 1..129 {
+        let mut j = 1;
+        for x in knot_hash(&(line.clone() + &format!("{}", i - 1))).iter() {
+            for n in (0..8).rev() {
+                if nth_bit(*x, n) {
+                    grid[i][j] = true;
+                    groups.push(vec![(i, j)]);
+                }
+                j += 1;
+            }
+        }
+    }
+    for (i, line) in grid.iter().enumerate() {
+        for (j, x) in line.iter().enumerate() {
+            if *x {
+                if grid[i - 1][j] {
+                    add_link((i, j), (i - 1, j), &mut groups)
+                }
+                if grid[i + 1][j] {
+                    add_link((i, j), (i + 1, j), &mut groups)
+                }
+                if grid[i][j - 1] {
+                    add_link((i, j), (i, j - 1), &mut groups)
+                }
+                if grid[i][j + 1] {
+                    add_link((i, j), (i, j + 1), &mut groups)
+                }
+            }
+        }
+    }
+    groups.len()
+}
+
 fn main() {
     let mut f = File::open(Path::new("input/day14.txt")).unwrap();
     let mut s = String::new();
     f.read_to_string(&mut s).ok();
     let input = s.trim();
     let p1 = solve1(&input);
-    let p2 = 0;
+    let p2 = solve2(&input);
     println!("Part 1: {}, Part 2: {}", p1, p2)
 }
 
@@ -85,33 +149,13 @@ mod test {
         assert_eq!(input, vec![3, 4, 2, 1, 0]);
     }
 
-    // #[test]
-    fn knot_hash_test() {
-        assert_eq!(
-            knot_hash(""),
-            vec![
-                18,
-                88,
-                42,
-                58,
-                15,
-                102,
-                230,
-                232,
-                110,
-                56,
-                18,
-                220,
-                182,
-                114,
-                162,
-                114,
-            ]
-        );
-    }
-
     #[test]
     fn solve1_test() {
         assert_eq!(solve1("flqrgnkx"), 8108)
+    }
+
+    #[test]
+    fn solve2_test() {
+        assert_eq!(solve2("flqrgnkx"), 1242)
     }
 }

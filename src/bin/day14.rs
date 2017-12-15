@@ -106,15 +106,10 @@ fn solve2(input: &str) -> usize {
     for (i, line) in grid.iter().enumerate() {
         for (j, x) in line.iter().enumerate() {
             if *x {
-                if grid[i - 1][j] {
-                    add_link((i, j), (i - 1, j), &mut groups)
-                }
                 if grid[i + 1][j] {
                     add_link((i, j), (i + 1, j), &mut groups)
                 }
-                if grid[i][j - 1] {
-                    add_link((i, j), (i, j - 1), &mut groups)
-                }
+
                 if grid[i][j + 1] {
                     add_link((i, j), (i, j + 1), &mut groups)
                 }

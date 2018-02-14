@@ -148,7 +148,7 @@ fn solve2(particles: &mut Vec<Option<Particle>>) -> usize {
     // time for each part to go in the direction of their acceleration and aaand a bit more time
     let time = particles.iter().fold(0, |time, particle| {
         time.max(particle.as_ref().unwrap().time_to_reverse())
-    }) + 100;
+    }) + 10;
     for _ in 0..time {
         run(particles);
     }
@@ -157,6 +157,17 @@ fn solve2(particles: &mut Vec<Option<Particle>>) -> usize {
     while particles.iter().filter(|x| x.is_some()).count() > 0 {
         run(particles);
         // WIP: use wont_collide to remove particles that will never collide anymore
+        for i in 0..particles.len() {
+            if particles[i].is_some() {
+                if particles.iter().filter(|p| p.is_some()).all(|p| {
+                    wont_collide(p.as_ref().unwrap(), particles[i].as_ref().unwrap())
+                })
+                {
+                    particles[i] = None;
+                    away_removed += 1;
+                }
+            }
+        }
     }
     away_removed
 }
@@ -176,22 +187,8 @@ fn main() {
     for line in s.lines() {
         particles.push(parse_particle(line));
     }
-    // particles = vec![
-    //     Particle{p: Vector{x: -6, y: 0, z: 0},
-    //         v: Vector{x: 3, y: 0, z: 0},
-    //         a: Vector{x: 0, y: 0, z: 0}},
-    //     Particle{p: Vector{x: -4, y: 0, z: 0},
-    //         v: Vector{x: 2, y: 0, z: 0},
-    //         a: Vector{x: 0, y: 0, z: 0}},
-    //     Particle{p: Vector{x: -2, y: 0, z: 0},
-    //         v: Vector{x: 1, y: 0, z: 0},
-    //         a: Vector{x: 0, y: 0, z: 0}},
-    //     Particle{p: Vector{x: 3, y: 0, z: 0},
-    //         v: Vector{x: -1, y: 0, z: 0},
-    //         a: Vector{x: 0, y: 0, z: 0}},
-    // ];
     let p1 = solve1(&particles);
-    let p2 = solve3(&mut particles.iter().map(|p| Some(p.clone())).collect());
+    let p2 = solve2(&mut particles.iter().map(|p| Some(p.clone())).collect());
     println!("Part 1: {}, Part 2: {}", p1, p2)
 }
 
@@ -233,28 +230,34 @@ mod test {
     #[test]
     fn solve2_test() {
         let mut particles = vec![
-            Particle {
+            Some(Particle {
                 p: Vector { x: -6, y: 0, z: 0 },
                 v: Vector { x: 3, y: 0, z: 0 },
                 a: Vector { x: 0, y: 0, z: 0 },
-            },
-            Particle {
+            }),
+            Some(Particle {
                 p: Vector { x: -4, y: 0, z: 0 },
                 v: Vector { x: 2, y: 0, z: 0 },
                 a: Vector { x: 0, y: 0, z: 0 },
-            },
-            Particle {
+            }),
+            Some(Particle {
                 p: Vector { x: -2, y: 0, z: 0 },
                 v: Vector { x: 1, y: 0, z: 0 },
                 a: Vector { x: 0, y: 0, z: 0 },
-            },
-            Particle {
+            }),
+            Some(Particle {
                 p: Vector { x: 3, y: 0, z: 0 },
                 v: Vector { x: -1, y: 0, z: 0 },
                 a: Vector { x: 0, y: 0, z: 0 },
-            },
+            }),
         ];
-        assert_eq!(wont_collide(&particles[1], &particles[2]), false);
+        assert_eq!(
+            wont_collide(
+                &particles[1].as_ref().unwrap(),
+                &particles[2].as_ref().unwrap(),
+            ),
+            false
+        );
         assert_eq!(solve2(&mut particles), 1);
     }
 }
